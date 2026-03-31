@@ -3,13 +3,14 @@
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Living Type - Contrast Checker</title>
+<title>LivingType - Contrast Checker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
 <style>
         :root {
             --bg: #191919;
             --worm: #F2F2F2;
             --worm60: rgba(242, 242, 242, 0.6);
+            /* Adaptive UI variables */
             --ui-text: #F2F2F2;
             --ui-bg: rgba(255, 255, 255, 0.1);
             --ui-border: rgba(255, 255, 255, 0.2);
@@ -23,6 +24,11 @@
             overflow: hidden;
             font-family: 'Helvetica', 'Arial', sans-serif;
             color: var(--worm);
+            transition: background 0.3s ease;
+        }
+
+        canvas {
+            display: block;
         }
 
         #canvas-container {
@@ -34,6 +40,7 @@
             z-index: 1;
         }
 
+        /* Bottom UI Bar Layout */
         .bar {
             position: fixed;
             left: 0;
@@ -65,7 +72,7 @@
             font-size: 104px;
             line-height: 0.8;
             color: var(--worm);
-            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-family: 'Helvetica', 'Arial', sans-serif;
         }
 
         .ratio-info {
@@ -100,7 +107,12 @@
             font-weight: 600;
             font-size: 14px;
             width: 120px;
-            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+        }
+
+        .input-pill input::placeholder {
+            color: var(--ui-input-text);
+            opacity: 0.5;
         }
 
         .btn-pill {
@@ -114,9 +126,16 @@
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            font-family: 'Helvetica', 'Arial', sans-serif;
             backdrop-filter: blur(8px);
         }
 
+        .btn-pill:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Right Side Columns */
         .right-panel {
             display: flex;
             gap: 60px;
@@ -155,26 +174,38 @@
             color: var(--worm);
             width: 150px;
             text-transform: uppercase;
+            font-family: 'Helvetica', 'Arial', sans-serif;
         }
 
         .color-dot {
             width: 24px;
             height: 24px;
+            aspect-ratio: 1/1;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
             flex-shrink: 0;
-            background: var(--worm);
         }
 
+        /* Custom Sliders */
         .slider-group {
             display: grid;
-            grid-template-columns: 80px 1fr 40px;
+            grid-template-columns: 80px 1fr 30px;
             align-items: center;
             gap: 8px;
             font-size: 12px;
             font-weight: 600;
             color: var(--ui-text);
+        }
+
+        .slider-group label {
+            opacity: 0.8;
+        }
+
+        .slider-group output {
+            text-align: right;
+            opacity: 0.8;
+            font-family: monospace;
         }
 
         input[type=range] {
@@ -194,8 +225,10 @@
             border-radius: 50%;
             background: var(--ui-text);
             cursor: pointer;
+            border: none;
         }
 
+        /* WCAG Badges */
         .badge-list {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -213,6 +246,8 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            text-align: center;
+            white-space: nowrap;
             color: var(--ui-text);
             backdrop-filter: blur(8px);
         }
@@ -220,34 +255,58 @@
         .badge.pass span { color: #4ade80; }
         .badge.fail span { color: #f87171; }
 
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            place-items: center;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .modal {
+            width: min(90vw, 400px);
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 20px;
+            padding: 24px;
+            color: #ffffff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         @media (max-width: 768px) {
             .bar {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 24px;
                 padding: 20px;
+                pointer-events: auto;
                 background: linear-gradient(to top, var(--bg) 85%, transparent);
                 bottom: 0;
+                overflow-y: visible;
+                max-height: none;
             }
+            .left-panel { gap: 16px; }
             .Aa { font-size: 64px; }
             .ratio-info { font-size: 28px; }
-            .ctrl-row {
-                display: flex;
-                flex-direction: row;
-                gap: 8px;
+            .ctrl-row { 
+                display: grid;
+                grid-template-columns: 1fr auto auto;
+                gap: 8px; 
                 width: 100%;
             }
-            .input-pill { flex: 1; min-width: 0; }
+            .input-pill { padding: 8px 16px; }
             .input-pill input { width: 100%; }
-            .right-panel { 
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-            .config-col { min-width: 0; }
+            .btn-pill { padding: 8px 16px; }
+            .right-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
             .config-col:last-child { grid-column: span 2; }
             .slider-group output { display: none; }
-            .slider-group { grid-template-columns: 70px 1fr; }
+            .color-dot { width: 24px; height: 24px; border-radius: 50% !important; }
         }
     </style>
 </head>
@@ -321,7 +380,29 @@
 </div>
 </div>
 </div>
+<div class="modal-backdrop" id="modal">
+<div class="modal" id="modalInner">
+<h3 id="modalTitle">Pick a color</h3>
+<div class="picker-area" style="position:relative; width:100%; aspect-ratio:1.5; border-radius:10px; overflow:hidden; cursor:crosshair;">
+<canvas id="pickerCanvas" style="width:100%; height:100%;"></canvas>
+<div class="picker-cursor" id="dot2d" style="position:absolute; width:14px; height:14px; aspect-ratio:1/1; border:2px solid white; border-radius:50%; pointer-events:none; box-shadow:0 0 2px rgba(0,0,0,0.5); transform:translate(-50%, -50%);"></div>
+</div>
+<div class="hue-slider-area" style="width:100%; height:20px; border-radius:10px; overflow:hidden; position:relative; cursor:pointer;">
+<canvas id="hueCanvas" style="width:100%; height:100%;"></canvas>
+<div class="picker-cursor" id="dotHue" style="position:absolute; width:14px; height:14px; aspect-ratio:1/1; border:2px solid white; border-radius:50%; pointer-events:none; box-shadow:0 0 2px rgba(0,0,0,0.5); transform:translate(-50%, -50%); top:50%;"></div>
+</div>
+<div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+<div class="preview-circle" id="swatch" style="width:32px; height:32px; aspect-ratio:1/1; border-radius:50%; border:1px solid rgba(255,255,255,0.2);"></div>
+<div class="modal-btns" style="display:flex; gap:12px;">
+<button class="btn-pill" id="cancelBtn" style="padding: 6px 16px;">Cancel</button>
+<button class="btn-pill" id="applyBtn" style="background: #F2F2F2; color: #191919; padding: 6px 16px;">Apply</button>
+</div>
+</div>
+</div>
+</div>
 <script>
+/* LivingType Engine - V11 Core Simulation */
+
 /* ===== Color Helpers ===== */
 const hexToRgb = (hex) => {
     if (!hex) return [0,0,0];
@@ -364,49 +445,46 @@ function hslToRgb([h, s, l]) {
         r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3);
     } return [r * 255, g * 255, b * 255];
 }
+function rgbToHsv(r,g,b){ r/=255; g/=255; b/=255; const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min; let h=0; if(d!==0){ if(max===r) h=60*(((g-b)/d)%6); else if(max===g) h=60*(((b-r)/d)+2); else h=60*(((r-g)/d)+4); if(h<0) h+=360; } const s=max===0?0:d/max; const v=max; return [h,s,v]; }
+function hsvToRgb(h,s,v){ const c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c; let r=0,g=0,b=0; if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;} else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;} return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)]; }
 
-/* ===== Engine Logic (V10 Minimal) ===== */
+/* ===== LivingType Engine Logic ===== */
 let molds = [];
 let COL_BG = [25, 25, 25];
 let COL_WORM = [242, 242, 242];
 let currentWord = "";
 let trailGraphics, textG, charG;
 
-// Baseline Constants
 const BASE_WORMS = 4000;
-// Reduction of 30% for mobile (instead of previous 40%)
-const MOBILE_REDUCTION_FACTOR = 0.7; // 1.0 - 0.3 = 0.7
-const MOBILE_WORMS = Math.floor(BASE_WORMS * MOBILE_REDUCTION_FACTOR); // 2800
+const MOBILE_WORMS = Math.floor(BASE_WORMS * 0.70); 
 
-// Core Constants
-const STEP_ROAM = 1.6;
-const STEP_SHAPE_H = 1.20;
-const SENSOR_DIST = 6;
+// Base Configs - Refined for "Tightness" and "Roaming"
+const BASE_STEP_ROAM = 1.6;
+const BASE_STEP_SHAPE_H = 1.25;
+const BASE_SENSOR_DIST = 6;
 const SENSOR_ANGLE = 30;
 const TURN_ANGLE = 20;
-const SHAPE_TURN_H = 15;
+
+// Refined values for tighter shapes (increased by 20% over base V10)
+const BASE_TURN_MAX_H = 20.0; // 16.5 * 1.2 = 19.8 -> 20
+const EDGE_PULL_TURN = 9.2; // 7.7 * 1.2 = 9.24
+const CENTROID_PULL = 0.145; // 0.121 * 1.2 = 0.1452
+
+const FILL_STEP_H = 3;
 const ALPHA_T = 128;
-const SHAPE_RATIO = 0.8; // 80% shape, 20% roam (as per requirement)
+const TRACK_PROP_H = 0.17 * 0.8; 
 const EDGE_GUARD = 2;
 const EDGE_GUARD_DEEP = 8;
+const STAY_IN_LETTER_H = 0.995; 
 const DWELL_MIN = 14;
 const DWELL_MAX = 36;
-const CENTROID_PULL = 0.10;
+const ORBIT_FRAMES = 8;
+const SHAPE_RATIO = 0.8; // 80% shape, 20% roam when typing
 
 let fillPoints = [];
 let letterPoints = [];
 let deepLetterPoints = [];
 let letterCentroids = [];
-
-function isPhonePortrait() {
-    return (window.innerHeight > window.innerWidth) && (window.innerWidth <= 768);
-}
-
-function applyPopulationPolicy() {
-    const targetCount = isPhonePortrait() ? MOBILE_WORMS : BASE_WORMS;
-    while(molds.length < targetCount) molds.push(new Mold());
-    while(molds.length > targetCount) molds.pop();
-}
 
 function setup() {
     const canvas = createCanvas(windowWidth, windowHeight);
@@ -416,12 +494,34 @@ function setup() {
     
     trailGraphics = createGraphics(width, height);
     trailGraphics.background(...COL_BG);
-    textG = createGraphics(width, height); textG.pixelDensity(1);
-    charG = createGraphics(width, height); charG.pixelDensity(1);
+    
+    textG = createGraphics(width, height);
+    textG.pixelDensity(1);
+    charG = createGraphics(width, height);
+    charG.pixelDensity(1);
     
     applyPopulationPolicy();
-    bindUIEvents();
-    updateUI();
+    bindUI();
+    
+    // Start empty as per request
+    currentWord = "";
+    document.getElementById('wordInput').value = "";
+}
+
+function applyPopulationPolicy() {
+    const isMobile = windowWidth <= 768;
+    const targetCount = isMobile ? MOBILE_WORMS : BASE_WORMS;
+    
+    if (molds.length === targetCount) return;
+    
+    if (molds.length > targetCount) {
+        molds.length = targetCount;
+    } else {
+        const toAdd = targetCount - molds.length;
+        for (let i = 0; i < toAdd; i++) {
+            molds.push(new Mold());
+        }
+    }
 }
 
 function draw() {
@@ -429,10 +529,10 @@ function draw() {
     trailGraphics.fill(COL_BG[0], COL_BG[1], COL_BG[2], 16);
     trailGraphics.rect(0, 0, width, height);
 
-    const wantShape = currentWord && fillPoints.length > 0;
-    const maxShape = wantShape ? Math.min(Math.floor(molds.length * SHAPE_RATIO), fillPoints.length) : 0;
+    const isTyping = currentWord && currentWord.trim().length > 0 && fillPoints.length > 0;
+    const maxShape = isTyping ? Math.min(Math.floor(molds.length * SHAPE_RATIO), fillPoints.length) : 0;
 
-    if (wantShape) {
+    if (isTyping) {
         const L = letterPoints.length;
         const sizes = letterPoints.map(a => a.length);
         const totalPts = sizes.reduce((a, b) => a + b, 0) || 1;
@@ -465,9 +565,12 @@ function draw() {
             molds[i].letterIndex = null;
         }
     } else {
+        // 100% Roaming when not typing
         for (let m of molds) {
             m.mode = 'roam';
             m.letterIndex = null;
+            m.tx = null;
+            m.ty = null;
         }
     }
 
@@ -480,7 +583,7 @@ function draw() {
     image(trailGraphics, 0, 0);
 }
 
-function buildFilledTargets_V10(str) {
+function buildFilledTargets_V11(str) {
     fillPoints = [];
     letterPoints = [];
     deepLetterPoints = [];
@@ -489,34 +592,39 @@ function buildFilledTargets_V10(str) {
     
     if (!str || str.trim().length === 0) return;
 
-    const maxW_H = width * 0.86;
-    const canvasTopLimit = 0.05, canvasBottomLimit = isPhonePortrait() ? 0.35 : 0.75;
+    const isMobile = windowWidth <= 768;
+    const canvasTopLimit = 0.05;
+    const canvasBottomLimit = isMobile ? 0.35 : 0.75;
+
+    const maxW_H = width * 0.92;
     const maxH_H = height * (canvasBottomLimit - canvasTopLimit);
     
-    let ts = Math.min(width * 0.24, maxH_H * 0.8);
+    // Scale increased by 30% (+30% from V10's 0.24 and maxH)
+    let ts = Math.min(width * 0.31, maxH_H * 1.04);
     const chars = Array.from(str);
 
-    textG.textFont('Arial');
-    charG.textFont('Arial');
+    textG.textFont('Helvetica');
+    charG.textFont('Helvetica');
     textG.textStyle(BOLD);
     charG.textStyle(BOLD);
 
     const targetCenterY = height * ((canvasTopLimit + canvasBottomLimit) / 2);
 
+    const FSTEP = FILL_STEP_H;
     textG.textAlign(LEFT, BASELINE);
     textG.textSize(ts);
     charG.textSize(ts);
     let widths = chars.map(ch => textG.textWidth(ch));
-    let track = ts * 0.13;
-    let totalW = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
+    let track = ts * TRACK_PROP_H;
+    let totalW = widths.reduce((a, b) => a + b, 0) + track * Math.max(chars.length - 1, 0);
     
     while ((totalW > maxW_H || ts > maxH_H) && ts > 12) {
         ts *= 0.96;
         textG.textSize(ts);
         charG.textSize(ts);
         widths = chars.map(ch => textG.textWidth(ch));
-        track = ts * 0.13;
-        totalW = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
+        track = ts * TRACK_PROP_H;
+        totalW = widths.reduce((a, b) => a + b, 0) + track * Math.max(chars.length - 1, 0);
     }
     
     const startX = (width - totalW) / 2;
@@ -525,7 +633,7 @@ function buildFilledTargets_V10(str) {
     for (let i = 0; i < chars.length; i++) {
         const ch = chars[i];
         if (ch === ' ') { x += ts * 0.5; continue; }
-        sampleLetter(ch, x, baselineY, ts, 3);
+        sampleLetter(ch, x, baselineY, ts, false, FSTEP);
         x += widths[i] + track;
     }
     
@@ -541,12 +649,12 @@ function buildFilledTargets_V10(str) {
     textG.loadPixels();
 }
 
-function sampleLetter(ch, posX, posY, ts, fillStep) {
+function sampleLetter(ch, posX, posY, ts, vertical, fillStep) {
     charG.clear();
     charG.fill(255);
     charG.noStroke();
     charG.textSize(ts);
-    charG.textAlign(LEFT, BASELINE);
+    charG.textAlign(vertical ? CENTER : LEFT, BASELINE);
     charG.text(ch, posX, posY);
     charG.loadPixels();
     
@@ -557,36 +665,34 @@ function sampleLetter(ch, posX, posY, ts, fillStep) {
     const pts = [], ptsDeep = [];
     let sumx = 0, sumy = 0, count = 0;
 
-    const isFilled = (xx, yy) => {
-        if (xx < 0 || xx >= w || yy < 0 || yy >= h) return false;
-        const idx = 4 * (yy * w + xx);
-        return charG.pixels[idx + 3] > ALPHA_T;
-    };
-
     for (let yy = yStart; yy <= yEnd; yy += fillStep) {
         for (let xx = xStart; xx <= xEnd; xx += fillStep) {
-            if (!isFilled(xx, yy)) continue;
-            
-            let ok = true;
-            for (let dy = -EDGE_GUARD; dy <= EDGE_GUARD && ok; dy++) {
-                for (let dx = -EDGE_GUARD; dx <= EDGE_GUARD; dx++) {
-                    if (!isFilled(xx + dx, yy + dy)) { ok = false; break; }
+            if (xx < 0 || xx >= w || yy < 0 || yy >= h) continue;
+            const idx = 4 * (yy * w + xx);
+            if (charG.pixels[idx + 3] > ALPHA_T) {
+                let ok = true;
+                for (let dy = -EDGE_GUARD; dy <= EDGE_GUARD && ok; dy++) {
+                    for (let dx = -EDGE_GUARD; dx <= EDGE_GUARD; dx++) {
+                        const i2 = 4 * ((yy + dy) * w + (xx + dx));
+                        if (!charG.pixels[i2 + 3] || charG.pixels[i2 + 3] <= ALPHA_T) { ok = false; break; }
+                    }
                 }
-            }
-            if (!ok) continue;
+                if (!ok) continue;
 
-            const p = { x: xx + random(-0.3, 0.3), y: yy + random(-0.3, 0.3) };
-            pts.push(p);
-            fillPoints.push(p);
-            sumx += p.x; sumy += p.y; count++;
+                const p = { x: xx + random(-0.3, 0.3), y: yy + random(-0.3, 0.3) };
+                pts.push(p);
+                fillPoints.push(p);
+                sumx += p.x; sumy += p.y; count++;
 
-            let deep = true;
-            for (let dy = -EDGE_GUARD_DEEP; dy <= EDGE_GUARD_DEEP && deep; dy++) {
-                for (let dx = -EDGE_GUARD_DEEP; dx <= EDGE_GUARD_DEEP; dx++) {
-                    if (!isFilled(xx + dx, yy + dy)) { deep = false; break; }
+                let deep = true;
+                for (let dy = -EDGE_GUARD_DEEP; dy <= EDGE_GUARD_DEEP && deep; dy++) {
+                    for (let dx = -EDGE_GUARD_DEEP; dx <= EDGE_GUARD_DEEP; dx++) {
+                        const i3 = 4 * ((yy + dy) * w + (xx + dx));
+                        if (!charG.pixels[i3 + 3] || charG.pixels[i3 + 3] <= ALPHA_T) { deep = false; break; }
+                    }
                 }
+                if (deep) ptsDeep.push(p);
             }
-            if (deep) ptsDeep.push(p);
         }
     }
     letterPoints.push(pts);
@@ -611,18 +717,40 @@ class Mold {
     resetDwell() { this.dwell = Math.floor(random(DWELL_MIN, DWELL_MAX)); }
     assignTarget(x, y) { this.tx = x; this.ty = y; }
     
-    sense(gfx, angleOffset) {
-        const ax = this.x + cos(this.a + angleOffset) * SENSOR_DIST;
-        const ay = this.y + sin(this.a + angleOffset) * SENSOR_DIST;
+    sense(gfx, angleOffset, sensorDist) {
+        const ax = this.x + cos(this.a + angleOffset) * sensorDist;
+        const ay = this.y + sin(this.a + angleOffset) * sensorDist;
         if (ax < 0 || ax >= width || ay < 0 || ay >= height) return 0;
         const idx = 4 * (Math.floor(ay) * width + Math.floor(ax));
         return trailGraphics.pixels[idx];
     }
 
     update() {
+        const charCount = currentWord.length;
+        const isMobile = windowWidth <= 768;
+        
+        let stepMult = 1.0;
+        let turnMult = 1.0; 
+        
+        if (charCount >= 1 && charCount <= 5) {
+            stepMult = 0.8; 
+            turnMult *= 1.1; 
+        } else if (charCount >= 6) {
+            stepMult = 0.88 * 0.95; 
+            turnMult *= 1.05; 
+        }
+        
+        const sensorDist = charCount > 0 ? BASE_SENSOR_DIST * stepMult : BASE_SENSOR_DIST;
+
         if (this.mode === 'shape' && this.tx !== null) {
-            const step = STEP_SHAPE_H;
-            let shapeTurn = SHAPE_TURN_H;
+            const step = BASE_STEP_SHAPE_H * stepMult;
+            let shapeTurn = BASE_TURN_MAX_H * turnMult;
+            let cPull = CENTROID_PULL * turnMult;
+
+            if (isMobile) {
+                shapeTurn *= 1.30;
+                cPull *= 1.30;
+            }
 
             const desired = degrees(atan2(this.ty - this.y, this.tx - this.x));
             let diff = (desired - this.a + 540) % 360 - 180;
@@ -632,7 +760,7 @@ class Mold {
             else this.orbitFrames = 0;
             this.lastTurnSign = sign;
 
-            if (this.orbitFrames > 8) {
+            if (this.orbitFrames > ORBIT_FRAMES) {
                 if (this.letterIndex != null && deepLetterPoints[this.letterIndex]?.length) {
                     const t = deepLetterPoints[this.letterIndex][Math.floor(random(deepLetterPoints[this.letterIndex].length))];
                     this.assignTarget(t.x, t.y);
@@ -645,17 +773,16 @@ class Mold {
                 const c = letterCentroids[this.letterIndex];
                 const cd = degrees(atan2(c.y - this.y, c.x - this.x));
                 let dAng = (cd - this.a + 540) % 360 - 180;
-                this.a += constrain(dAng, -6, 6) * CENTROID_PULL;
+                this.a += constrain(dAng, -6, 6) * cPull;
             }
 
             this.a += constrain(diff, -shapeTurn, shapeTurn) + random(-0.45, 0.45);
 
-            const aC = alphaAt(textG, this.x, this.y);
-            if (aC <= ALPHA_T || nearBoundary(this.x, this.y)) {
-                const gdir = interiorDirection(this.x, this.y);
+            if (nearBoundary(this.x, this.y)) {
+                let gdir = interiorDirection(this.x, this.y);
                 if (gdir != null) {
                     let nd = (gdir - this.a + 540) % 360 - 180;
-                    this.a += constrain(nd, -7, 7);
+                    this.a += constrain(nd, -EDGE_PULL_TURN * turnMult, EDGE_PULL_TURN * turnMult);
                 }
             }
 
@@ -666,7 +793,7 @@ class Mold {
             const dx = this.tx - this.x, dy = this.ty - this.y;
             if ((dx * dx + dy * dy) < 25 || this.dwell <= 0) {
                 this.resetDwell();
-                if (this.letterIndex != null && deepLetterPoints[this.letterIndex]?.length && Math.random() < 0.99) {
+                if (this.letterIndex != null && deepLetterPoints[this.letterIndex]?.length && Math.random() < STAY_IN_LETTER_H) {
                     const t = deepLetterPoints[this.letterIndex][Math.floor(random(deepLetterPoints[this.letterIndex].length))];
                     this.assignTarget(t.x, t.y);
                 } else if (fillPoints.length) {
@@ -675,17 +802,18 @@ class Mold {
                 }
             }
         } else {
-            const f = this.sense(trailGraphics, 0);
-            const l = this.sense(trailGraphics, -SENSOR_ANGLE);
-            const r = this.sense(trailGraphics, SENSOR_ANGLE);
+            // Roam logic
+            const f = this.sense(trailGraphics, 0, sensorDist);
+            const l = this.sense(trailGraphics, -SENSOR_ANGLE, sensorDist);
+            const r = this.sense(trailGraphics, SENSOR_ANGLE, sensorDist);
 
             if (f > l && f > r) {}
             else if (l > r) { this.a -= TURN_ANGLE; }
             else if (r > l) { this.a += TURN_ANGLE; }
             else { this.a += random([-TURN_ANGLE, TURN_ANGLE]); }
 
-            this.x += cos(this.a) * STEP_ROAM;
-            this.y += sin(this.a) * STEP_ROAM;
+            this.x += cos(this.a) * (BASE_STEP_ROAM * stepMult);
+            this.y += sin(this.a) * (BASE_STEP_ROAM * stepMult);
         }
 
         if (this.x < 0) this.x += width; if (this.x >= width) this.x -= width;
@@ -705,13 +833,11 @@ function alphaAt(g, x, y) {
     const idx = 4 * (yi * g.width + xi);
     return g.pixels ? g.pixels[idx + 3] : 0;
 }
-
 function nearBoundary(x, y) {
     if (alphaAt(textG, x, y) <= ALPHA_T) return true;
     return alphaAt(textG, x + 1, y) <= ALPHA_T || alphaAt(textG, x - 1, y) <= ALPHA_T || 
            alphaAt(textG, x, y + 1) <= ALPHA_T || alphaAt(textG, x, y - 1) <= ALPHA_T;
 }
-
 function interiorDirection(x, y) {
     const ax = alphaAt(textG, x + 1, y) - alphaAt(textG, x - 1, y);
     const ay = alphaAt(textG, x, y + 1) - alphaAt(textG, x, y - 1);
@@ -728,13 +854,23 @@ function windowResized() {
     textG = createGraphics(width, height); textG.pixelDensity(1);
     charG = createGraphics(width, height); charG.pixelDensity(1);
     applyPopulationPolicy();
-    buildFilledTargets_V10(currentWord);
+    buildFilledTargets_V11(currentWord);
 }
 
-/* ===== UI Implementation ===== */
+/* ===== UI Logic ===== */
 const hexW = document.getElementById('hexWorm');
 const hexB = document.getElementById('hexBg');
 const wordInput = document.getElementById('wordInput');
+
+const modal = document.getElementById('modal');
+const pickerCanvas = document.getElementById('pickerCanvas');
+const hueCanvas = document.getElementById('hueCanvas');
+const swatch = document.getElementById('swatch');
+const dot2d = document.getElementById('dot2d');
+const dotHue = document.getElementById('dotHue');
+let pickingTarget = 'worm';
+let currentHSV = [0, 0, 0];
+let randomClickCount = 0;
 
 function updateUI() {
     const ratio = getContrast(hexW.value, hexB.value);
@@ -761,6 +897,18 @@ function updateUI() {
     const [rW, gW, bW] = hexToRgb(hexW.value);
     document.documentElement.style.setProperty('--worm60', `rgba(${rW},${gW},${bW},0.6)`);
     
+    const lumB = relLuminance(hexToRgb(hexB.value));
+    const isDark = lumB < 0.25;
+    
+    const uiBaseColor = isDark ? '#FFFFFF' : '#000000';
+    const uiBg = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)';
+    const uiBorder = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+    
+    document.documentElement.style.setProperty('--ui-text', uiBaseColor);
+    document.documentElement.style.setProperty('--ui-bg', uiBg);
+    document.documentElement.style.setProperty('--ui-border', uiBorder);
+    document.documentElement.style.setProperty('--ui-input-text', uiBaseColor);
+    
     COL_BG = hexToRgb(hexB.value);
     COL_WORM = hexToRgb(hexW.value);
     if(trailGraphics) trailGraphics.background(...COL_BG);
@@ -769,22 +917,69 @@ function updateUI() {
     document.getElementById('dotBg').style.background = hexB.value;
 }
 
-function syncSliders(side) {
-    const hex = side === 'W' ? hexW.value : hexB.value;
-    const [h, s, l] = rgbToHsl(hexToRgb(hex));
-    document.getElementById('h' + side).value = Math.round(h);
-    document.getElementById('s' + side).value = s.toFixed(2);
-    document.getElementById('l' + side).value = l.toFixed(2);
-    document.getElementById('oh' + side).innerText = Math.round(h) + '°';
-    document.getElementById('os' + side).innerText = s.toFixed(2);
-    document.getElementById('ol' + side).innerText = l.toFixed(2);
+function syncSliderLabels() {
+    ['W', 'B'].forEach(side => {
+        document.getElementById('oh' + side).innerText = document.getElementById('h' + side).value + '°';
+        document.getElementById('os' + side).innerText = parseFloat(document.getElementById('s' + side).value).toFixed(2);
+        document.getElementById('ol' + side).innerText = parseFloat(document.getElementById('l' + side).value).toFixed(2);
+    });
 }
 
-function bindUIEvents() {
+function openPicker(target) {
+    pickingTarget = target;
+    const hex = target === 'worm' ? hexW.value : hexB.value;
+    const [r,g,b] = hexToRgb(hex);
+    currentHSV = rgbToHsv(r,g,b);
+    document.getElementById('modalTitle').innerText = target === 'worm' ? 'Pick Worm Color' : 'Pick Background Color';
+    modal.style.display = 'grid';
+    drawPickerUI();
+}
+
+function drawPickerUI() {
+    const [h, s, v] = currentHSV;
+    const pCtx = pickerCanvas.getContext('2d');
+    const hCtx = hueCanvas.getContext('2d');
+    const w = pickerCanvas.width = pickerCanvas.offsetWidth;
+    const h_area = pickerCanvas.height = pickerCanvas.offsetHeight;
+    const hw = hueCanvas.width = hueCanvas.offsetWidth;
+    const hh = hueCanvas.height = hueCanvas.offsetHeight;
+
+    const gradW = pCtx.createLinearGradient(0,0,w,0);
+    gradW.addColorStop(0, 'white');
+    const [hr,hg,hb] = hsvToRgb(h,1,1);
+    gradW.addColorStop(1, `rgb(${hr},${hg},${hb})`);
+    pCtx.fillStyle = gradW;
+    pCtx.fillRect(0,0,w,h_area);
+    const gradB = pCtx.createLinearGradient(0,0,0,h_area);
+    gradB.addColorStop(0, 'rgba(0,0,0,0)');
+    gradB.addColorStop(1, 'black');
+    pCtx.fillStyle = gradB;
+    pCtx.fillRect(0,0,w,h_area);
+
+    for(let x=0; x<hw; x++){
+        const hue = (x/hw) * 360;
+        const [hr,hg,hb] = hsvToRgb(hue, 1, 1);
+        hCtx.fillStyle = `rgb(${hr},${hg},${hb})`;
+        hCtx.fillRect(x, 0, 1, hh);
+    }
+
+    const [currR, currG, currB] = hsvToRgb(h,s,v);
+    swatch.style.background = rgbToHex([currR, currG, currB]);
+    dot2d.style.left = (s * 100) + '%';
+    dot2d.style.top = ((1-v) * 100) + '%';
+    dotHue.style.left = (h/360 * 100) + '%';
+}
+
+function bindUI() {
     [hexW, hexB].forEach(el => {
         el.addEventListener('input', () => {
             if (/^#[0-9A-F]{6}$/i.test(el.value)) {
-                syncSliders(el.id === 'hexWorm' ? 'W' : 'B');
+                const [h, s, l] = rgbToHsl(hexToRgb(el.value));
+                const side = el.id === 'hexWorm' ? 'W' : 'B';
+                document.getElementById('h' + side).value = Math.round(h);
+                document.getElementById('s' + side).value = s.toFixed(2);
+                document.getElementById('l' + side).value = l.toFixed(2);
+                syncSliderLabels();
                 updateUI();
             }
         });
@@ -798,8 +993,7 @@ function bindUIEvents() {
                 const l = +document.getElementById('l' + side).value;
                 const hex = rgbToHex(hslToRgb([h, s, l]));
                 document.getElementById('hex' + (side === 'W' ? 'Worm' : 'Bg')).value = hex;
-                document.getElementById('o' + prop + side).innerText = prop === 'h' ? h + '°' : prop === 's' || prop === 'l' ? l.toFixed(2) : l.toFixed(2);
-                if(prop === 's') document.getElementById('os' + side).innerText = s.toFixed(2);
+                syncSliderLabels();
                 updateUI();
             });
         });
@@ -807,29 +1001,102 @@ function bindUIEvents() {
 
     wordInput.addEventListener('input', (e) => {
         currentWord = e.target.value;
-        buildFilledTargets_V10(currentWord);
+        buildFilledTargets_V11(currentWord);
     });
 
     document.getElementById('btnReverse').addEventListener('click', () => {
         const temp = hexW.value;
         hexW.value = hexB.value;
         hexB.value = temp;
-        syncSliders('W');
-        syncSliders('B');
+        [hexW, hexB].forEach(el => {
+            const [h, s, l] = rgbToHsl(hexToRgb(el.value));
+            const side = el.id === 'hexWorm' ? 'W' : 'B';
+            document.getElementById('h' + side).value = Math.round(h);
+            document.getElementById('s' + side).value = s.toFixed(2);
+            document.getElementById('l' + side).value = l.toFixed(2);
+        });
+        syncSliderLabels();
         updateUI();
     });
 
     document.getElementById('btnRandom').addEventListener('click', () => {
-        const rand = () => Math.floor(Math.random() * 256);
-        hexW.value = rgbToHex([rand(), rand(), rand()]);
-        hexB.value = rgbToHex([rand(), rand(), rand()]);
-        syncSliders('W');
-        syncSliders('B');
+        const wantPass = randomClickCount % 2 === 0;
+        let colorW, colorB, contrast;
+        let attempts = 0;
+        
+        do {
+            colorW = [random(255), random(255), random(255)];
+            colorB = [random(255), random(255), random(255)];
+            contrast = getContrast(rgbToHex(colorW), rgbToHex(colorB));
+            attempts++;
+            if (attempts > 500) break;
+        } while (wantPass ? (contrast < 4.5) : (contrast >= 4.5));
+        
+        hexW.value = rgbToHex(colorW);
+        hexB.value = rgbToHex(colorB);
+        randomClickCount++;
+        
+        [hexW, hexB].forEach(el => {
+            const [h, s, l] = rgbToHsl(hexToRgb(el.value));
+            const side = el.id === 'hexWorm' ? 'W' : 'B';
+            document.getElementById('h' + side).value = Math.round(h);
+            document.getElementById('s' + side).value = s.toFixed(2);
+            document.getElementById('l' + side).value = l.toFixed(2);
+        });
+        syncSliderLabels();
         updateUI();
     });
 
-    syncSliders('W');
-    syncSliders('B');
+    document.getElementById('dotWorm').addEventListener('click', () => openPicker('worm'));
+    document.getElementById('dotBg').addEventListener('click', () => openPicker('bg'));
+
+    const onPickerDown = (e) => {
+        const move = (ev) => {
+            const rect = pickerCanvas.getBoundingClientRect();
+            currentHSV[1] = constrain((ev.clientX - rect.left) / rect.width, 0, 1);
+            currentHSV[2] = 1 - constrain((ev.clientY - rect.top) / rect.height, 0, 1);
+            drawPickerUI();
+        };
+        move(e);
+        const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+    };
+    pickerCanvas.addEventListener('mousedown', onPickerDown);
+
+    const onHueDown = (e) => {
+        const move = (ev) => {
+            const rect = hueCanvas.getBoundingClientRect();
+            currentHSV[0] = constrain((ev.clientX - rect.left) / rect.width * 360, 0, 360);
+            drawPickerUI();
+        };
+        move(e);
+        const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+    };
+    hueCanvas.addEventListener('mousedown', onHueDown);
+
+    document.getElementById('applyBtn').addEventListener('click', () => {
+        const [r,g,b] = hsvToRgb(...currentHSV);
+        const hex = rgbToHex([r,g,b]);
+        const targetEl = pickingTarget === 'worm' ? hexW : hexB;
+        targetEl.value = hex;
+        const [h, s, l] = rgbToHsl([r,g,b]);
+        const side = pickingTarget === 'worm' ? 'W' : 'B';
+        document.getElementById('h' + side).value = Math.round(h);
+        document.getElementById('s' + side).value = s.toFixed(2);
+        document.getElementById('l' + side).value = l.toFixed(2);
+        syncSliderLabels();
+        updateUI();
+        modal.style.display = 'none';
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('mousedown', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+    updateUI();
+    syncSliderLabels();
 }
 </script>
 </body></html>
