@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Physarum Simulation - Contrast Checker V10 (30% Mobile Reduction)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+<style>
+        :root {
+            --bg: #191919;
+            --worm: #F2F2F2;
+            --worm60: rgba(242, 242, 242, 0.6);
+            --ui-text: #F2F2F2;
+            --ui-bg: rgba(255, 255, 255, 0.1);
+            --ui-border: rgba(255, 255, 255, 0.2);
+            --ui-input-text: #F2F2F2;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            overflow: hidden;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: var(--worm);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 40px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .sample-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        .Aa {
+            font-weight: 700;
+            font-size: 104px;
+            line-height: 0.8;
+            color: var(--worm);
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        .ratio-info {
+            font-weight: 700;
+            font-size: 40px;
+            color: var(--worm);
+            display: flex;
+            gap: 12px;
+        }
+
+        .ctrl-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-pill {
+            padding: 10px 20px;
+            border-radius: 9999px;
+            background: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .input-pill input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--ui-input-text);
+            font-weight: 600;
+            font-size: 14px;
+            width: 120px;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        .btn-pill {
+            padding: 10px 24px;
+            border-radius: 9999px;
+            background: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            color: var(--ui-text);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+
+        .right-panel {
+            display: flex;
+            gap: 60px;
+            pointer-events: auto;
+        }
+
+        .config-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 220px;
+        }
+
+        .col-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ui-text);
+            opacity: 0.6;
+        }
+
+        .hex-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .hex-input {
+            font-size: 34px;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--worm);
+            width: 150px;
+            text-transform: uppercase;
+        }
+
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            flex-shrink: 0;
+            background: var(--worm);
+        }
+
+        .slider-group {
+            display: grid;
+            grid-template-columns: 80px 1fr 40px;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ui-text);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 2px;
+            background: var(--ui-border);
+            border-radius: 1px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--ui-text);
+            cursor: pointer;
+        }
+
+        .badge-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 8px 12px;
+            border-radius: 9999px;
+            background: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--ui-text);
+            backdrop-filter: blur(8px);
+        }
+
+        .badge.pass span { color: #4ade80; }
+        .badge.fail span { color: #f87171; }
+
+        @media (max-width: 768px) {
+            .bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 24px;
+                padding: 20px;
+                background: linear-gradient(to top, var(--bg) 85%, transparent);
+                bottom: 0;
+            }
+            .Aa { font-size: 64px; }
+            .ratio-info { font-size: 28px; }
+            .ctrl-row {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                width: 100%;
+            }
+            .input-pill { flex: 1; min-width: 0; }
+            .input-pill input { width: 100%; }
+            .right-panel { 
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            .config-col { min-width: 0; }
+            .config-col:last-child { grid-column: span 2; }
+            .slider-group output { display: none; }
+            .slider-group { grid-template-columns: 70px 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div class="bar">
+<div class="left-panel">
+<div class="sample-row">
+<div class="Aa" id="bigAa">Aa</div>
+<div class="ratio-info">
+<span id="ratioNum">21.00</span>
+<span id="ratioGrade">AAA</span>
+</div>
+</div>
+<div class="ctrl-row">
+<div class="input-pill">
+<input id="wordInput" maxlength="10" placeholder="Type here" type="text" value=""/>
+</div>
+<button class="btn-pill" id="btnReverse">Invert</button>
+<button class="btn-pill" id="btnRandom">Random</button>
+</div>
+</div>
+<div class="right-panel">
+<div class="config-col">
+<div class="col-label">Worms</div>
+<div class="hex-header">
+<div class="color-dot" id="dotWorm" style="background: #F2F2F2;"></div>
+<input class="hex-input" id="hexWorm" maxlength="7" value="#F2F2F2"/>
+</div>
+<div class="slider-group">
+<label>Hue</label>
+<input id="hW" max="360" min="0" step="1" type="range" value="0"/>
+<output id="ohW">0°</output>
+</div>
+<div class="slider-group">
+<label>Saturation</label>
+<input id="sW" max="1" min="0" step="0.01" type="range" value="0"/>
+<output id="osW">0.00</output>
+</div>
+<div class="slider-group">
+<label>Lightness</label>
+<input id="lW" max="1" min="0" step="0.01" type="range" value="0.95"/>
+<output id="olW">0.95</output>
+</div>
+</div>
+<div class="config-col">
+<div class="col-label">Background</div>
+<div class="hex-header">
+<div class="color-dot" id="dotBg" style="background: #191919;"></div>
+<input class="hex-input" id="hexBg" maxlength="7" value="#191919"/>
+</div>
+<div class="slider-group">
+<label>Hue</label>
+<input id="hB" max="360" min="0" step="1" type="range" value="0"/>
+<output id="ohB">0°</output>
+</div>
+<div class="slider-group">
+<label>Saturation</label>
+<input id="sB" max="1" min="0" step="0.01" type="range" value="0"/>
+<output id="osB">0.00</output>
+</div>
+<div class="slider-group">
+<label>Lightness</label>
+<input id="lB" max="1" min="0" step="0.01" type="range" value="0.1"/>
+<output id="olB">0.10</output>
+</div>
+</div>
+<div class="config-col">
+<div class="col-label">WCAG</div>
+<div class="badge-list" id="badges"></div>
+</div>
+</div>
+</div>
+<script>
+/* ===== Color Helpers ===== */
+const hexToRgb = (hex) => {
+    if (!hex) return [0,0,0];
+    const n = parseInt(hex.replace(/^#/, ''), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase();
+function srgbToLin(v) { v /= 255; return (v <= 0.03928) ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+function relLuminance([r, g, b]) { return 0.2126 * srgbToLin(r) + 0.7152 * srgbToLin(g) + 0.0722 * srgbToLin(b); }
+function getContrast(h1, h2) {
+    const L1 = relLuminance(hexToRgb(h1)), L2 = relLuminance(hexToRgb(h2));
+    const lighter = Math.max(L1, L2), darker = Math.min(L1, L2);
+    return (lighter + 0.05) / (darker + 0.05);
+}
+function rgbToHsl([r, g, b]) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; } else {
+        const d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        } h /= 6;
+    } return [h * 360, s, l];
+}
+function hslToRgb([h, s, l]) {
+    h /= 360; let r, g, b;
+    if (s === 0) { r = g = b = l; } else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1; if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3);
+    } return [r * 255, g * 255, b * 255];
+}
+
+/* ===== Engine Logic (V10 Minimal) ===== */
+let molds = [];
+let COL_BG = [25, 25, 25];
+let COL_WORM = [242, 242, 242];
+let currentWord = "";
+let trailGraphics, textG, charG;
+
+// Baseline Constants
+const BASE_WORMS = 4000;
+// Reduction of 30% for mobile (instead of previous 40%)
+const MOBILE_REDUCTION_FACTOR = 0.7; // 1.0 - 0.3 = 0.7
+const MOBILE_WORMS = Math.floor(BASE_WORMS * MOBILE_REDUCTION_FACTOR); // 2800
+
+// Core Constants
+const STEP_ROAM = 1.6;
+const STEP_SHAPE_H = 1.20;
+const SENSOR_DIST = 6;
+const SENSOR_ANGLE = 30;
+const TURN_ANGLE = 20;
+const SHAPE_TURN_H = 15;
+const ALPHA_T = 128;
+const SHAPE_RATIO = 0.8; // 80% shape, 20% roam (as per requirement)
+const EDGE_GUARD = 2;
+const EDGE_GUARD_DEEP = 8;
+const DWELL_MIN = 14;
+const DWELL_MAX = 36;
+const CENTROID_PULL = 0.10;
+
+let fillPoints = [];
+let letterPoints = [];
+let deepLetterPoints = [];
+let letterCentroids = [];
+
+function isPhonePortrait() {
+    return (window.innerHeight > window.innerWidth) && (window.innerWidth <= 768);
+}
+
+function applyPopulationPolicy() {
+    const targetCount = isPhonePortrait() ? MOBILE_WORMS : BASE_WORMS;
+    while(molds.length < targetCount) molds.push(new Mold());
+    while(molds.length > targetCount) molds.pop();
+}
+
+function setup() {
+    const canvas = createCanvas(windowWidth, windowHeight);
+    canvas.parent('canvas-container');
+    angleMode(DEGREES);
+    pixelDensity(1);
+    
+    trailGraphics = createGraphics(width, height);
+    trailGraphics.background(...COL_BG);
+    textG = createGraphics(width, height); textG.pixelDensity(1);
+    charG = createGraphics(width, height); charG.pixelDensity(1);
+    
+    applyPopulationPolicy();
+    bindUIEvents();
+    updateUI();
+}
+
+function draw() {
+    trailGraphics.noStroke();
+    trailGraphics.fill(COL_BG[0], COL_BG[1], COL_BG[2], 16);
+    trailGraphics.rect(0, 0, width, height);
+
+    const wantShape = currentWord && fillPoints.length > 0;
+    const maxShape = wantShape ? Math.min(Math.floor(molds.length * SHAPE_RATIO), fillPoints.length) : 0;
+
+    if (wantShape) {
+        const L = letterPoints.length;
+        const sizes = letterPoints.map(a => a.length);
+        const totalPts = sizes.reduce((a, b) => a + b, 0) || 1;
+        let assigned = 0;
+        const perLetter = sizes.map(s => {
+            const v = Math.floor(maxShape * (s / totalPts));
+            assigned += v;
+            return v;
+        });
+        let rem = maxShape - assigned;
+        const order = sizes.map((s, i) => ({ i, f: maxShape * (s / totalPts) - Math.floor(maxShape * (s / totalPts)) })).sort((a, b) => b.f - a.f);
+        for (let k = 0; k < rem; k++) perLetter[order[k % order.length].i]++;
+
+        let cursor = 0;
+        for (let li = 0; li < L; li++) {
+            const ptsDeep = (deepLetterPoints[li] && deepLetterPoints[li].length) ? deepLetterPoints[li] : letterPoints[li];
+            const n = perLetter[li] || 0;
+            if (!ptsDeep || ptsDeep.length === 0) continue;
+            for (let k = 0; k < n && cursor < molds.length; k++, cursor++) {
+                const m = molds[cursor];
+                m.mode = 'shape';
+                m.letterIndex = li;
+                const p = ptsDeep[(cursor * 5) % ptsDeep.length];
+                m.assignTarget(p.x, p.y);
+                m.resetDwell();
+            }
+        }
+        for (let i = cursor; i < molds.length; i++) {
+            molds[i].mode = 'roam';
+            molds[i].letterIndex = null;
+        }
+    } else {
+        for (let m of molds) {
+            m.mode = 'roam';
+            m.letterIndex = null;
+        }
+    }
+
+    for (let m of molds) {
+        m.update();
+        m.display(trailGraphics);
+    }
+
+    background(COL_BG[0], COL_BG[1], COL_BG[2], 10);
+    image(trailGraphics, 0, 0);
+}
+
+function buildFilledTargets_V10(str) {
+    fillPoints = [];
+    letterPoints = [];
+    deepLetterPoints = [];
+    letterCentroids = [];
+    textG.clear();
+    
+    if (!str || str.trim().length === 0) return;
+
+    const maxW_H = width * 0.86;
+    const canvasTopLimit = 0.05, canvasBottomLimit = isPhonePortrait() ? 0.35 : 0.75;
+    const maxH_H = height * (canvasBottomLimit - canvasTopLimit);
+    
+    let ts = Math.min(width * 0.24, maxH_H * 0.8);
+    const chars = Array.from(str);
+
+    textG.textFont('Arial');
+    charG.textFont('Arial');
+    textG.textStyle(BOLD);
+    charG.textStyle(BOLD);
+
+    const targetCenterY = height * ((canvasTopLimit + canvasBottomLimit) / 2);
+
+    textG.textAlign(LEFT, BASELINE);
+    textG.textSize(ts);
+    charG.textSize(ts);
+    let widths = chars.map(ch => textG.textWidth(ch));
+    let track = ts * 0.13;
+    let totalW = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
+    
+    while ((totalW > maxW_H || ts > maxH_H) && ts > 12) {
+        ts *= 0.96;
+        textG.textSize(ts);
+        charG.textSize(ts);
+        widths = chars.map(ch => textG.textWidth(ch));
+        track = ts * 0.13;
+        totalW = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
+    }
+    
+    const startX = (width - totalW) / 2;
+    const baselineY = targetCenterY + ts * 0.34;
+    let x = startX;
+    for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i];
+        if (ch === ' ') { x += ts * 0.5; continue; }
+        sampleLetter(ch, x, baselineY, ts, 3);
+        x += widths[i] + track;
+    }
+    
+    textG.clear();
+    textG.fill(255);
+    textG.textSize(ts);
+    textG.textAlign(LEFT, BASELINE);
+    let drawX = startX;
+    for (let ch of chars) {
+        textG.text(ch, drawX, baselineY);
+        drawX += textG.textWidth(ch) + track;
+    }
+    textG.loadPixels();
+}
+
+function sampleLetter(ch, posX, posY, ts, fillStep) {
+    charG.clear();
+    charG.fill(255);
+    charG.noStroke();
+    charG.textSize(ts);
+    charG.textAlign(LEFT, BASELINE);
+    charG.text(ch, posX, posY);
+    charG.loadPixels();
+    
+    const w = charG.width, h = charG.height;
+    const xStart = Math.floor(posX - ts), xEnd = Math.floor(posX + ts * 2);
+    const yStart = Math.floor(posY - ts * 1.5), yEnd = Math.floor(posY + ts * 0.5);
+
+    const pts = [], ptsDeep = [];
+    let sumx = 0, sumy = 0, count = 0;
+
+    const isFilled = (xx, yy) => {
+        if (xx < 0 || xx >= w || yy < 0 || yy >= h) return false;
+        const idx = 4 * (yy * w + xx);
+        return charG.pixels[idx + 3] > ALPHA_T;
+    };
+
+    for (let yy = yStart; yy <= yEnd; yy += fillStep) {
+        for (let xx = xStart; xx <= xEnd; xx += fillStep) {
+            if (!isFilled(xx, yy)) continue;
+            
+            let ok = true;
+            for (let dy = -EDGE_GUARD; dy <= EDGE_GUARD && ok; dy++) {
+                for (let dx = -EDGE_GUARD; dx <= EDGE_GUARD; dx++) {
+                    if (!isFilled(xx + dx, yy + dy)) { ok = false; break; }
+                }
+            }
+            if (!ok) continue;
+
+            const p = { x: xx + random(-0.3, 0.3), y: yy + random(-0.3, 0.3) };
+            pts.push(p);
+            fillPoints.push(p);
+            sumx += p.x; sumy += p.y; count++;
+
+            let deep = true;
+            for (let dy = -EDGE_GUARD_DEEP; dy <= EDGE_GUARD_DEEP && deep; dy++) {
+                for (let dx = -EDGE_GUARD_DEEP; dx <= EDGE_GUARD_DEEP; dx++) {
+                    if (!isFilled(xx + dx, yy + dy)) { deep = false; break; }
+                }
+            }
+            if (deep) ptsDeep.push(p);
+        }
+    }
+    letterPoints.push(pts);
+    deepLetterPoints.push(ptsDeep);
+    letterCentroids.push({ x: count ? sumx / count : posX, y: count ? sumy / count : posY });
+}
+
+class Mold {
+    constructor() {
+        this.x = random(width);
+        this.y = random(height);
+        this.a = random(360);
+        this.mode = 'roam';
+        this.tx = null;
+        this.ty = null;
+        this.letterIndex = null;
+        this.dwell = 0;
+        this.lastTurnSign = 0;
+        this.orbitFrames = 0;
+        this.resetDwell();
+    }
+    resetDwell() { this.dwell = Math.floor(random(DWELL_MIN, DWELL_MAX)); }
+    assignTarget(x, y) { this.tx = x; this.ty = y; }
+    
+    sense(gfx, angleOffset) {
+        const ax = this.x + cos(this.a + angleOffset) * SENSOR_DIST;
+        const ay = this.y + sin(this.a + angleOffset) * SENSOR_DIST;
+        if (ax < 0 || ax >= width || ay < 0 || ay >= height) return 0;
+        const idx = 4 * (Math.floor(ay) * width + Math.floor(ax));
+        return trailGraphics.pixels[idx];
+    }
+
+    update() {
+        if (this.mode === 'shape' && this.tx !== null) {
+            const step = STEP_SHAPE_H;
+            let shapeTurn = SHAPE_TURN_H;
+
+            const desired = degrees(atan2(this.ty - this.y, this.tx - this.x));
+            let diff = (desired - this.a + 540) % 360 - 180;
+            
+            const sign = diff === 0 ? 0 : (diff > 0 ? 1 : -1);
+            if (sign === this.lastTurnSign && Math.abs(diff) > 2) this.orbitFrames++;
+            else this.orbitFrames = 0;
+            this.lastTurnSign = sign;
+
+            if (this.orbitFrames > 8) {
+                if (this.letterIndex != null && deepLetterPoints[this.letterIndex]?.length) {
+                    const t = deepLetterPoints[this.letterIndex][Math.floor(random(deepLetterPoints[this.letterIndex].length))];
+                    this.assignTarget(t.x, t.y);
+                }
+                this.a += random(-40, 40);
+                this.orbitFrames = 0;
+            }
+
+            if (this.letterIndex != null && letterCentroids[this.letterIndex]) {
+                const c = letterCentroids[this.letterIndex];
+                const cd = degrees(atan2(c.y - this.y, c.x - this.x));
+                let dAng = (cd - this.a + 540) % 360 - 180;
+                this.a += constrain(dAng, -6, 6) * CENTROID_PULL;
+            }
+
+            this.a += constrain(diff, -shapeTurn, shapeTurn) + random(-0.45, 0.45);
+
+            const aC = alphaAt(textG, this.x, this.y);
+            if (aC <= ALPHA_T || nearBoundary(this.x, this.y)) {
+                const gdir = interiorDirection(this.x, this.y);
+                if (gdir != null) {
+                    let nd = (gdir - this.a + 540) % 360 - 180;
+                    this.a += constrain(nd, -7, 7);
+                }
+            }
+
+            this.x += cos(this.a) * step;
+            this.y += sin(this.a) * step;
+            this.dwell--;
+
+            const dx = this.tx - this.x, dy = this.ty - this.y;
+            if ((dx * dx + dy * dy) < 25 || this.dwell <= 0) {
+                this.resetDwell();
+                if (this.letterIndex != null && deepLetterPoints[this.letterIndex]?.length && Math.random() < 0.99) {
+                    const t = deepLetterPoints[this.letterIndex][Math.floor(random(deepLetterPoints[this.letterIndex].length))];
+                    this.assignTarget(t.x, t.y);
+                } else if (fillPoints.length) {
+                    const t = fillPoints[Math.floor(random(fillPoints.length))];
+                    this.assignTarget(t.x, t.y);
+                }
+            }
+        } else {
+            const f = this.sense(trailGraphics, 0);
+            const l = this.sense(trailGraphics, -SENSOR_ANGLE);
+            const r = this.sense(trailGraphics, SENSOR_ANGLE);
+
+            if (f > l && f > r) {}
+            else if (l > r) { this.a -= TURN_ANGLE; }
+            else if (r > l) { this.a += TURN_ANGLE; }
+            else { this.a += random([-TURN_ANGLE, TURN_ANGLE]); }
+
+            this.x += cos(this.a) * STEP_ROAM;
+            this.y += sin(this.a) * STEP_ROAM;
+        }
+
+        if (this.x < 0) this.x += width; if (this.x >= width) this.x -= width;
+        if (this.y < 0) this.y += height; if (this.y >= height) this.y -= height;
+    }
+
+    display(gfx) {
+        gfx.stroke(COL_WORM[0], COL_WORM[1], COL_WORM[2]);
+        gfx.strokeWeight(this.mode === 'shape' ? 1.25 : 1.0);
+        gfx.point(this.x, this.y);
+    }
+}
+
+function alphaAt(g, x, y) {
+    const xi = Math.floor(constrain(x, 0, g.width - 1));
+    const yi = Math.floor(constrain(y, 0, g.height - 1));
+    const idx = 4 * (yi * g.width + xi);
+    return g.pixels ? g.pixels[idx + 3] : 0;
+}
+
+function nearBoundary(x, y) {
+    if (alphaAt(textG, x, y) <= ALPHA_T) return true;
+    return alphaAt(textG, x + 1, y) <= ALPHA_T || alphaAt(textG, x - 1, y) <= ALPHA_T || 
+           alphaAt(textG, x, y + 1) <= ALPHA_T || alphaAt(textG, x, y - 1) <= ALPHA_T;
+}
+
+function interiorDirection(x, y) {
+    const ax = alphaAt(textG, x + 1, y) - alphaAt(textG, x - 1, y);
+    const ay = alphaAt(textG, x, y + 1) - alphaAt(textG, x, y - 1);
+    if (ax === 0 && ay === 0) return null;
+    return degrees(atan2(ay, ax));
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    const newG = createGraphics(width, height);
+    newG.background(...COL_BG);
+    newG.image(trailGraphics, 0, 0, width, height);
+    trailGraphics = newG;
+    textG = createGraphics(width, height); textG.pixelDensity(1);
+    charG = createGraphics(width, height); charG.pixelDensity(1);
+    applyPopulationPolicy();
+    buildFilledTargets_V10(currentWord);
+}
+
+/* ===== UI Implementation ===== */
+const hexW = document.getElementById('hexWorm');
+const hexB = document.getElementById('hexBg');
+const wordInput = document.getElementById('wordInput');
+
+function updateUI() {
+    const ratio = getContrast(hexW.value, hexB.value);
+    document.getElementById('ratioNum').textContent = ratio.toFixed(2);
+    
+    let grade = "FAIL";
+    if (ratio >= 7) grade = "AAA";
+    else if (ratio >= 4.5) grade = "AA";
+    document.getElementById('ratioGrade').textContent = grade;
+
+    const badges = document.getElementById('badges');
+    const passIcon = '<span>✓</span>';
+    const failIcon = '<span>✕</span>';
+    
+    badges.innerHTML = `
+        <div class="badge ${ratio >= 4.5 ? 'pass' : 'fail'}">${ratio >= 4.5 ? passIcon : failIcon} AA Normal</div>
+        <div class="badge ${ratio >= 7 ? 'pass' : 'fail'}">${ratio >= 7 ? passIcon : failIcon} AAA Normal</div>
+        <div class="badge ${ratio >= 3 ? 'pass' : 'fail'}">${ratio >= 3 ? passIcon : failIcon} AA Large</div>
+        <div class="badge ${ratio >= 4.5 ? 'pass' : 'fail'}">${ratio >= 4.5 ? passIcon : failIcon} AAA Large</div>
+    `;
+
+    document.documentElement.style.setProperty('--bg', hexB.value);
+    document.documentElement.style.setProperty('--worm', hexW.value);
+    const [rW, gW, bW] = hexToRgb(hexW.value);
+    document.documentElement.style.setProperty('--worm60', `rgba(${rW},${gW},${bW},0.6)`);
+    
+    COL_BG = hexToRgb(hexB.value);
+    COL_WORM = hexToRgb(hexW.value);
+    if(trailGraphics) trailGraphics.background(...COL_BG);
+    
+    document.getElementById('dotWorm').style.background = hexW.value;
+    document.getElementById('dotBg').style.background = hexB.value;
+}
+
+function syncSliders(side) {
+    const hex = side === 'W' ? hexW.value : hexB.value;
+    const [h, s, l] = rgbToHsl(hexToRgb(hex));
+    document.getElementById('h' + side).value = Math.round(h);
+    document.getElementById('s' + side).value = s.toFixed(2);
+    document.getElementById('l' + side).value = l.toFixed(2);
+    document.getElementById('oh' + side).innerText = Math.round(h) + '°';
+    document.getElementById('os' + side).innerText = s.toFixed(2);
+    document.getElementById('ol' + side).innerText = l.toFixed(2);
+}
+
+function bindUIEvents() {
+    [hexW, hexB].forEach(el => {
+        el.addEventListener('input', () => {
+            if (/^#[0-9A-F]{6}$/i.test(el.value)) {
+                syncSliders(el.id === 'hexWorm' ? 'W' : 'B');
+                updateUI();
+            }
+        });
+    });
+
+    ['W', 'B'].forEach(side => {
+        ['h', 's', 'l'].forEach(prop => {
+            document.getElementById(prop + side).addEventListener('input', () => {
+                const h = +document.getElementById('h' + side).value;
+                const s = +document.getElementById('s' + side).value;
+                const l = +document.getElementById('l' + side).value;
+                const hex = rgbToHex(hslToRgb([h, s, l]));
+                document.getElementById('hex' + (side === 'W' ? 'Worm' : 'Bg')).value = hex;
+                document.getElementById('o' + prop + side).innerText = prop === 'h' ? h + '°' : prop === 's' || prop === 'l' ? l.toFixed(2) : l.toFixed(2);
+                if(prop === 's') document.getElementById('os' + side).innerText = s.toFixed(2);
+                updateUI();
+            });
+        });
+    });
+
+    wordInput.addEventListener('input', (e) => {
+        currentWord = e.target.value;
+        buildFilledTargets_V10(currentWord);
+    });
+
+    document.getElementById('btnReverse').addEventListener('click', () => {
+        const temp = hexW.value;
+        hexW.value = hexB.value;
+        hexB.value = temp;
+        syncSliders('W');
+        syncSliders('B');
+        updateUI();
+    });
+
+    document.getElementById('btnRandom').addEventListener('click', () => {
+        const rand = () => Math.floor(Math.random() * 256);
+        hexW.value = rgbToHex([rand(), rand(), rand()]);
+        hexB.value = rgbToHex([rand(), rand(), rand()]);
+        syncSliders('W');
+        syncSliders('B');
+        updateUI();
+    });
+
+    syncSliders('W');
+    syncSliders('B');
+}
+</script>
+</body></html>
