@@ -233,9 +233,19 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
+            position: relative;
+        }
+
+        .badge-wrapper {
+            position: relative;
+            height: 32px; 
         }
 
         .badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             padding: 8px 12px;
             border-radius: 9999px;
             background: var(--ui-bg);
@@ -243,17 +253,80 @@
             font-size: 11px;
             font-weight: 700;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             justify-content: center;
             gap: 6px;
-            text-align: center;
-            white-space: nowrap;
             color: var(--ui-text);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
+            transition: 
+                width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            box-sizing: border-box;
+            z-index: 1;
         }
 
-        .badge.pass span { color: #4ade80; }
-        .badge.fail span { color: #f87171; }
+        .badge-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        .badge-details {
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 400;
+            font-size: 10px;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+
+        .badge-req {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 2px;
+            opacity: 0.8;
+        }
+
+        .badge:hover, .badge:active {
+            z-index: 100;
+            width: 220px;
+            border-radius: 16px;
+            padding: 12px;
+            background: var(--ui-bg);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            border-color: var(--ui-border);
+            color: var(--ui-text);
+        }
+
+        .badge-wrapper:nth-child(even) .badge:hover,
+        .badge-wrapper:nth-child(even) .badge:active {
+            left: auto;
+            right: 0;
+        }
+        
+        .badge-wrapper:nth-child(n+3) .badge:hover,
+        .badge-wrapper:nth-child(n+3) .badge:active {
+            top: auto;
+            bottom: 0;
+        }
+
+        .badge:hover .badge-details, .badge:active .badge-details {
+            max-height: 120px;
+            opacity: 1;
+            margin-top: 4px;
+            pointer-events: auto;
+        }
+
+        .badge.pass .status-icon { color: #4ade80; }
+        .badge.fail .status-icon { color: #f87171; }
 
         /* Modal Styles */
         .modal-backdrop {
@@ -279,34 +352,91 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        @media (max-width: 768px) {
+        /* Responsive Styles */
+        @media (max-width: 1024px) {
             .bar {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 24px;
-                padding: 20px;
+                padding: 20px 30px;
+                padding-bottom: 30px;
                 pointer-events: auto;
                 background: linear-gradient(to top, var(--bg) 85%, transparent);
                 bottom: 0;
                 overflow-y: visible;
-                max-height: none;
+                max-height: 90vh;
+                box-sizing: border-box;
+                width: 100vw;
             }
-            .left-panel { gap: 16px; }
-            .Aa { font-size: 64px; }
-            .ratio-info { font-size: 28px; }
-            .ctrl-row { 
-                display: grid;
-                grid-template-columns: 1fr auto auto;
-                gap: 8px; 
+
+            .left-panel {
+                gap: 20px;
                 width: 100%;
             }
-            .input-pill { padding: 8px 16px; }
-            .input-pill input { width: 100%; }
-            .btn-pill { padding: 8px 16px; }
-            .right-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-            .config-col:last-child { grid-column: span 2; }
-            .slider-group output { display: none; }
-            .color-dot { width: 24px; height: 24px; border-radius: 50% !important; }
+
+            .right-panel {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                width: 100%;
+            }
+
+            .config-col:last-child {
+                grid-column: span 2;
+            }
+
+            .config-col {
+                min-width: 0;
+            }
+
+            .hex-input {
+                font-size: 28px;
+                width: 100%;
+            }
+            
+            .badge:hover, .badge:active {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .bar {
+                padding: 16px;
+                padding-bottom: 50px; 
+            }
+            .Aa { font-size: 64px; }
+            .ratio-info { font-size: 28px; }
+            .ctrl-row {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 8px;
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+            .input-pill {
+                flex: 1 1 auto;
+                min-width: 120px;
+            }
+            .btn-pill {
+                flex: 0 0 auto;
+                padding: 10px 16px;
+            }
+            
+            .right-panel {
+                gap: 16px;
+            }
+            .slider-group {
+                grid-template-columns: 80px 1fr 30px;
+            }
+            .slider-group output { display: block; }
+
+            .badge-wrapper:nth-child(n+1) .badge:hover,
+            .badge-wrapper:nth-child(n+1) .badge:active {
+                top: auto;
+                bottom: 0;
+            }
         }
     </style>
 </head>
@@ -401,7 +531,7 @@
 </div>
 </div>
 <script>
-/* LivingType Engine - V11 Core Simulation */
+/* LivingType Engine - V13 Logic Optimized */
 
 /* ===== Color Helpers ===== */
 const hexToRgb = (hex) => {
@@ -456,30 +586,26 @@ let currentWord = "";
 let trailGraphics, textG, charG;
 
 const BASE_WORMS = 4000;
-const MOBILE_WORMS = Math.floor(BASE_WORMS * 0.70); 
+const MOBILE_WORMS = Math.floor(BASE_WORMS * 0.525); 
 
-// Base Configs - Refined for "Tightness" and "Roaming"
 const BASE_STEP_ROAM = 1.6;
-const BASE_STEP_SHAPE_H = 1.25;
+const BASE_STEP_SHAPE_H = 1.20;
 const BASE_SENSOR_DIST = 6;
 const SENSOR_ANGLE = 30;
 const TURN_ANGLE = 20;
-
-// Refined values for tighter shapes (increased by 20% over base V10)
-const BASE_TURN_MAX_H = 20.0; // 16.5 * 1.2 = 19.8 -> 20
-const EDGE_PULL_TURN = 9.2; // 7.7 * 1.2 = 9.24
-const CENTROID_PULL = 0.145; // 0.121 * 1.2 = 0.1452
-
-const FILL_STEP_H = 3;
-const ALPHA_T = 128;
+const BASE_TURN_MAX_H = 16.5; 
+const EDGE_PULL_TURN = 7.7; 
+const FILL_STEP_H = 2.5; // Finer step for better filling
+const ALPHA_T = 120; // Lowered threshold for tighter formation
 const TRACK_PROP_H = 0.17 * 0.8; 
-const EDGE_GUARD = 2;
-const EDGE_GUARD_DEEP = 8;
+const EDGE_GUARD = 1.5;
+const EDGE_GUARD_DEEP = 6;
 const STAY_IN_LETTER_H = 0.995; 
 const DWELL_MIN = 14;
 const DWELL_MAX = 36;
 const ORBIT_FRAMES = 8;
-const SHAPE_RATIO = 0.8; // 80% shape, 20% roam when typing
+const CENTROID_PULL = 0.121; 
+const SHAPE_RATIO = 0.8; // 80/20 movement rule
 
 let fillPoints = [];
 let letterPoints = [];
@@ -503,9 +629,9 @@ function setup() {
     applyPopulationPolicy();
     bindUI();
     
-    // Start empty as per request
-    currentWord = "";
-    document.getElementById('wordInput').value = "";
+    currentWord = ""; // Start with empty word (worms roaming)
+    document.getElementById('wordInput').value = ""; 
+    buildFilledTargets_V13(currentWord);
 }
 
 function applyPopulationPolicy() {
@@ -529,10 +655,11 @@ function draw() {
     trailGraphics.fill(COL_BG[0], COL_BG[1], COL_BG[2], 16);
     trailGraphics.rect(0, 0, width, height);
 
-    const isTyping = currentWord && currentWord.trim().length > 0 && fillPoints.length > 0;
-    const maxShape = isTyping ? Math.min(Math.floor(molds.length * SHAPE_RATIO), fillPoints.length) : 0;
+    const hasText = currentWord && currentWord.trim().length > 0;
+    const wantShape = hasText && fillPoints.length > 0;
+    const maxShape = wantShape ? Math.min(Math.floor(molds.length * SHAPE_RATIO), fillPoints.length) : 0;
 
-    if (isTyping) {
+    if (wantShape) {
         const L = letterPoints.length;
         const sizes = letterPoints.map(a => a.length);
         const totalPts = sizes.reduce((a, b) => a + b, 0) || 1;
@@ -565,12 +692,9 @@ function draw() {
             molds[i].letterIndex = null;
         }
     } else {
-        // 100% Roaming when not typing
         for (let m of molds) {
             m.mode = 'roam';
             m.letterIndex = null;
-            m.tx = null;
-            m.ty = null;
         }
     }
 
@@ -583,7 +707,7 @@ function draw() {
     image(trailGraphics, 0, 0);
 }
 
-function buildFilledTargets_V11(str) {
+function buildFilledTargets_V13(str) {
     fillPoints = [];
     letterPoints = [];
     deepLetterPoints = [];
@@ -593,14 +717,14 @@ function buildFilledTargets_V11(str) {
     if (!str || str.trim().length === 0) return;
 
     const isMobile = windowWidth <= 768;
-    const canvasTopLimit = 0.05;
-    const canvasBottomLimit = isMobile ? 0.35 : 0.75;
+    // Lower vertical position on mobile by 10%
+    const canvasTopLimit = isMobile ? 0.15 : 0.05; 
+    const canvasBottomLimit = isMobile ? 0.40 : 0.75; 
 
-    const maxW_H = width * 0.92;
+    const maxW_H = width * 0.86;
     const maxH_H = height * (canvasBottomLimit - canvasTopLimit);
     
-    // Scale increased by 30% (+30% from V10's 0.24 and maxH)
-    let ts = Math.min(width * 0.31, maxH_H * 1.04);
+    let ts = Math.min(width * 0.24, maxH_H * 0.8);
     const chars = Array.from(str);
 
     textG.textFont('Helvetica');
@@ -633,7 +757,7 @@ function buildFilledTargets_V11(str) {
     for (let i = 0; i < chars.length; i++) {
         const ch = chars[i];
         if (ch === ' ') { x += ts * 0.5; continue; }
-        sampleLetter(ch, x, baselineY, ts, false, FSTEP);
+        sampleLetter_V13(ch, x, baselineY, ts, false, FSTEP);
         x += widths[i] + track;
     }
     
@@ -649,7 +773,7 @@ function buildFilledTargets_V11(str) {
     textG.loadPixels();
 }
 
-function sampleLetter(ch, posX, posY, ts, vertical, fillStep) {
+function sampleLetter_V13(ch, posX, posY, ts, vertical, fillStep) {
     charG.clear();
     charG.fill(255);
     charG.noStroke();
@@ -659,8 +783,9 @@ function sampleLetter(ch, posX, posY, ts, vertical, fillStep) {
     charG.loadPixels();
     
     const w = charG.width, h = charG.height;
-    const xStart = Math.floor(posX - ts), xEnd = Math.floor(posX + ts * 2);
-    const yStart = Math.floor(posY - ts * 1.5), yEnd = Math.floor(posY + ts * 0.5);
+    // Expanded sampling area to ensure no gaps at edges
+    const xStart = Math.floor(posX - ts * 0.5), xEnd = Math.floor(posX + ts * 2);
+    const yStart = Math.floor(posY - ts * 1.5), yEnd = Math.floor(posY + ts * 1.0);
 
     const pts = [], ptsDeep = [];
     let sumx = 0, sumy = 0, count = 0;
@@ -670,33 +795,35 @@ function sampleLetter(ch, posX, posY, ts, vertical, fillStep) {
             if (xx < 0 || xx >= w || yy < 0 || yy >= h) continue;
             const idx = 4 * (yy * w + xx);
             if (charG.pixels[idx + 3] > ALPHA_T) {
-                let ok = true;
-                for (let dy = -EDGE_GUARD; dy <= EDGE_GUARD && ok; dy++) {
+                // Ensure the point is solidly inside for primary targets
+                let isEdge = false;
+                for (let dy = -EDGE_GUARD; dy <= EDGE_GUARD && !isEdge; dy++) {
                     for (let dx = -EDGE_GUARD; dx <= EDGE_GUARD; dx++) {
                         const i2 = 4 * ((yy + dy) * w + (xx + dx));
-                        if (!charG.pixels[i2 + 3] || charG.pixels[i2 + 3] <= ALPHA_T) { ok = false; break; }
+                        if (!charG.pixels[i2 + 3] || charG.pixels[i2 + 3] <= ALPHA_T) { isEdge = true; break; }
                     }
                 }
-                if (!ok) continue;
 
-                const p = { x: xx + random(-0.3, 0.3), y: yy + random(-0.3, 0.3) };
+                const p = { x: xx + random(-0.2, 0.2), y: yy + random(-0.2, 0.2) };
                 pts.push(p);
                 fillPoints.push(p);
                 sumx += p.x; sumy += p.y; count++;
 
-                let deep = true;
-                for (let dy = -EDGE_GUARD_DEEP; dy <= EDGE_GUARD_DEEP && deep; dy++) {
-                    for (let dx = -EDGE_GUARD_DEEP; dx <= EDGE_GUARD_DEEP; dx++) {
-                        const i3 = 4 * ((yy + dy) * w + (xx + dx));
-                        if (!charG.pixels[i3 + 3] || charG.pixels[i3 + 3] <= ALPHA_T) { deep = false; break; }
+                if (!isEdge) {
+                    let deep = true;
+                    for (let dy = -EDGE_GUARD_DEEP; dy <= EDGE_GUARD_DEEP && deep; dy++) {
+                        for (let dx = -EDGE_GUARD_DEEP; dx <= EDGE_GUARD_DEEP; dx++) {
+                            const i3 = 4 * ((yy + dy) * w + (xx + dx));
+                            if (!charG.pixels[i3 + 3] || charG.pixels[i3 + 3] <= ALPHA_T) { deep = false; break; }
+                        }
                     }
+                    if (deep) ptsDeep.push(p);
                 }
-                if (deep) ptsDeep.push(p);
             }
         }
     }
     letterPoints.push(pts);
-    deepLetterPoints.push(ptsDeep);
+    deepLetterPoints.push(ptsDeep.length > 0 ? ptsDeep : pts);
     letterCentroids.push({ x: count ? sumx / count : posX, y: count ? sumy / count : posY });
 }
 
@@ -726,18 +853,22 @@ class Mold {
     }
 
     update() {
-        const charCount = currentWord.length;
+        const charCount = (currentWord || "").length;
         const isMobile = windowWidth <= 768;
         
         let stepMult = 1.0;
-        let turnMult = 1.0; 
+        let turnMult = 1.1; 
         
         if (charCount >= 1 && charCount <= 5) {
             stepMult = 0.8; 
-            turnMult *= 1.1; 
+            turnMult *= 1.25; 
         } else if (charCount >= 6) {
             stepMult = 0.88 * 0.95; 
-            turnMult *= 1.05; 
+            turnMult *= 1.125 * 1.05; 
+        }
+
+        if (isMobile) {
+            turnMult *= 2.625;
         }
         
         const sensorDist = charCount > 0 ? BASE_SENSOR_DIST * stepMult : BASE_SENSOR_DIST;
@@ -802,14 +933,13 @@ class Mold {
                 }
             }
         } else {
-            // Roam logic
             const f = this.sense(trailGraphics, 0, sensorDist);
             const l = this.sense(trailGraphics, -SENSOR_ANGLE, sensorDist);
             const r = this.sense(trailGraphics, SENSOR_ANGLE, sensorDist);
 
             if (f > l && f > r) {}
-            else if (l > r) { this.a -= TURN_ANGLE; }
-            else if (r > l) { this.a += TURN_ANGLE; }
+            else if (l > r) { this.a -= TURN_ANGLE * turnMult; }
+            else if (r > l) { this.a += TURN_ANGLE * turnMult; }
             else { this.a += random([-TURN_ANGLE, TURN_ANGLE]); }
 
             this.x += cos(this.a) * (BASE_STEP_ROAM * stepMult);
@@ -854,7 +984,7 @@ function windowResized() {
     textG = createGraphics(width, height); textG.pixelDensity(1);
     charG = createGraphics(width, height); charG.pixelDensity(1);
     applyPopulationPolicy();
-    buildFilledTargets_V11(currentWord);
+    buildFilledTargets_V13(currentWord);
 }
 
 /* ===== UI Logic ===== */
@@ -882,15 +1012,29 @@ function updateUI() {
     document.getElementById('ratioGrade').textContent = grade;
 
     const badges = document.getElementById('badges');
-    const passIcon = '<span>✓</span>';
-    const failIcon = '<span>✕</span>';
+    const passIcon = '<span class="status-icon">✓</span>';
+    const failIcon = '<span class="status-icon">✕</span>';
     
-    badges.innerHTML = `
-        <div class="badge ${ratio >= 4.5 ? 'pass' : 'fail'}">${ratio >= 4.5 ? passIcon : failIcon} AA Normal</div>
-        <div class="badge ${ratio >= 7 ? 'pass' : 'fail'}">${ratio >= 7 ? passIcon : failIcon} AAA Normal</div>
-        <div class="badge ${ratio >= 3 ? 'pass' : 'fail'}">${ratio >= 3 ? passIcon : failIcon} AA Large</div>
-        <div class="badge ${ratio >= 4.5 ? 'pass' : 'fail'}">${ratio >= 4.5 ? passIcon : failIcon} AAA Large</div>
-    `;
+    const badgeData = [
+        { id: 'aa-normal', name: 'AA Normal', ratio: 4.5, desc: 'Requires a contrast ratio of 4.5:1 for standard text. This applies to regular text smaller than 18pt or bold text smaller than 14pt.' },
+        { id: 'aaa-normal', name: 'AAA Normal', ratio: 7.0, desc: 'Requires a contrast ratio of 7:1 for standard text. This is the enhanced standard for regular text smaller than 18pt or bold text smaller than 14pt.' },
+        { id: 'aa-large', name: 'AA Large', ratio: 3.0, desc: 'Requires a contrast ratio of 3:1 for larger text. This applies to regular text at 18pt (24px) and above, or bold text at 14pt (18.66px) and above.' },
+        { id: 'aaa-large', name: 'AAA Large', ratio: 4.5, desc: 'Requires a contrast ratio of 4.5:1 for larger text. This applies to regular text at 18pt (24px) and above, or bold text at 14pt (18.66px) and above.' }
+    ];
+
+    badges.innerHTML = badgeData.map(d => `
+        <div class="badge-wrapper">
+            <div class="badge ${ratio >= d.ratio ? 'pass' : 'fail'}">
+                <div class="badge-header">
+                    ${ratio >= d.ratio ? passIcon : failIcon} ${d.name}
+                </div>
+                <div class="badge-details">
+                    <span class="badge-req">${d.ratio.toFixed(1)}:1 Ratio</span>
+                    ${d.desc}
+                </div>
+            </div>
+        </div>
+    `).join('');
 
     document.documentElement.style.setProperty('--bg', hexB.value);
     document.documentElement.style.setProperty('--worm', hexW.value);
@@ -1001,7 +1145,7 @@ function bindUI() {
 
     wordInput.addEventListener('input', (e) => {
         currentWord = e.target.value;
-        buildFilledTargets_V11(currentWord);
+        buildFilledTargets_V13(currentWord);
     });
 
     document.getElementById('btnReverse').addEventListener('click', () => {
