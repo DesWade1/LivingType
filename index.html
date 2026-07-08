@@ -1087,7 +1087,7 @@ function openPicker(target) {
     const hex = target === 'worm' ? hexW.value : hexB.value;
     const [r,g,b] = hexToRgb(hex);
     currentHSV = rgbToHsv(r,g,b);
-    document.getElementById('modalTitle').innerText = target === 'worm' ? 'Pick Worm Color' : 'Pick Background Color';
+    document.getElementById('modalTitle').innerText = target === 'worm' ? 'Choose Pixel Colour' : 'Pick Background Color';
     modal.style.display = 'grid';
     drawPickerUI();
 }
