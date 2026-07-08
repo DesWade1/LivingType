@@ -476,7 +476,7 @@
 </div>
 <div class="right-panel">
 <div class="config-col">
-<div class="col-label">Worms</div>
+<div class="col-label">Pixels</div>
 <div class="hex-header">
 <div class="color-dot" id="dotWorm" style="background: #F2F2F2;"></div>
 <input class="hex-input" id="hexWorm" maxlength="7" value="#F2F2F2"/>
@@ -601,8 +601,8 @@ let COL_WORM = [242, 242, 242];
 let currentWord = "";
 let trailGraphics, textG, charG;
 
-const BASE_WORMS = 4000;
-const MOBILE_WORMS = Math.floor(BASE_WORMS * 0.525); 
+const BASE_Pixels = 4000;
+const MOBILE_Pixels = Math.floor(BASE_Pixels * 0.525); 
 
 const BASE_STEP_ROAM = 1.6;
 const BASE_STEP_SHAPE_H = 1.20;
@@ -652,7 +652,7 @@ function setup() {
 
 function applyPopulationPolicy() {
     const isMobile = windowWidth <= 768;
-    const targetCount = isMobile ? MOBILE_WORMS : BASE_WORMS;
+    const targetCount = isMobile ? MOBILE_Pixels : BASE_Pixels;
     
     if (molds.length === targetCount) return;
     
